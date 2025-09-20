@@ -14,16 +14,21 @@ function HomeContent() {
   const { isDark } = useTheme()
 
   return (
-    <main className="min-h-screen bg-background relative">
+    <>
+      {/* Vanta background - positioned behind everything */}
       <VantaBackground isDark={isDark} />
-      <Navigation />
-      <Hero />
-      <About />
-      <Experience />
-      <Projects />
-      <Skills />
-      <Contact />
-    </main>
+      
+      {/* Main content - transparent background to let Vanta show through */}
+      <main className="min-h-screen relative">
+        <Navigation />
+        <Hero />
+        <About />
+        <Experience />
+        <Projects />
+        <Skills />
+        <Contact />
+      </main>
+    </>
   )
 }
 

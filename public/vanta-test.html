@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanta Effects Tester</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+        }
+        
+        #vanta-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+            min-width: 250px;
+        }
+        
+        .effect-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        button:hover { background: #2563eb; }
+        button.active { background: #10b981; }
+        button:disabled { background: #6b7280; cursor: not-allowed; }
+        
+        .theme-toggle {
+            background: #f59e0b;
+            margin-bottom: 15px;
+            width: 100%;
+            padding: 10px;
+        }
+        
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .success { background: rgba(16, 185, 129, 0.3); }
+        .error { background: rgba(239, 68, 68, 0.3); }
+        .loading { background: rgba(59, 130, 246, 0.3); }
+    </style>
+</head>
+<body>
+    <div id="vanta-container"></div>
+    
+    <div class="controls">
+        <h3>Vanta Effects Tester</h3>
+        
+        <button class="theme-toggle" onclick="toggleTheme()">
+            Switch to <span id="theme-text">Light</span> Mode
+        </button>
+        
+        <div id="status" class="status loading">Loading scripts...</div>
+        
+        <div>
+            <h4>Dark Mode Effects</h4>
+            <div class="effect-grid">
+                <button onclick="testEffect('NET', true)">NET</button>
+                <button onclick="testEffect('CELLS', true)">CELLS</button>
+                <button onclick="testEffect('WAVES', true)">WAVES</button>
+                <button onclick="testEffect('FOG', true)">FOG</button>
+                <button onclick="testEffect('TOPOLOGY', true)">TOPOLOGY</button>
+                <button onclick="testEffect('TRUNK', true)">TRUNK</button>
+            </div>
+        </div>
+        
+        <div>
+            <h4>Light Mode Effects</h4>
+            <div class="effect-grid">
+                <button onclick="testEffect('DOTS', false)">DOTS</button>
+                <button onclick="testEffect('CLOUDS', false)">CLOUDS</button>
+                <button onclick="testEffect('CLOUDS2', false)">CLOUDS2</button>
+                <button onclick="testEffect('RINGS', false)">RINGS</button>
+                <button onclick="testEffect('GLOBE', false)">GLOBE</button>
+                <button onclick="testEffect('HALO', false)">HALO</button>
+            </div>
+        </div>
+        
+        <button onclick="destroyEffect()" style="background: #ef4444; width: 100%; margin-top: 15px;">
+            Stop Effect
+        </button>
+        
+        <div style="margin-top: 15px; font-size: 10px; opacity: 0.7;">
+            Click an effect button to test it. Green = working, Red = failed.
+        </div>
+    </div>
+
+    <script>
+        let vantaEffect = null;
+        let isDarkMode = true;
+        let loadedEffects = new Set();
+
+        const darkConfigs = {
+            NET: {
+                color: 0x3b82f6,
+                backgroundColor: 0x0f172a,
+                points: 10.0,
+                maxDistance: 23.0,
+                spacing: 17.0,
+                showDots: true,
+            },
+            CELLS: {
+                color1: 0x1e40af,
+                color2: 0x3730a3,
+                backgroundColor: 0x0f172a,
+                size: 1.50,
+                speed: 1.00,
+            },
+            WAVES: {
+                color: 0x1e3a8a,
+                waveHeight: 20.00,
+                waveSpeed: 1.00,
+                zoom: 0.75,
+                backgroundColor: 0x0f172a,
+            },
+            FOG: {
+                highlightColor: 0x3730a3,
+                midtoneColor: 0x1e40af,
+                lowlightColor: 0x1e3a8a,
+                baseColor: 0x0f172a,
+                blurFactor: 0.90,
+                speed: 1.00,
+                zoom: 1.00,
+            },
+            TOPOLOGY: {
+                color: 0x3b82f6,
+                backgroundColor: 0x0f172a,
+                points: 8.00,
+                maxDistance: 25.00,
+                spacing: 20.00,
+            },
+            TRUNK: {
+                color: 0x1e40af,
+                backgroundColor: 0x0f172a,
+                spacing: 0.00,
+                chaos: 4.00,
+            }
+        };
+
+        const lightConfigs = {
+            DOTS: {
+                color: 0xf97316,
+                color2: 0xfbbf24,
+                backgroundColor: 0xfefefe,
+                size: 4.0,
+                spacing: 25.0,
+                showLines: true,
+            },
+            CLOUDS: {
+                backgroundColor: 0xfefefe,
+                skyColor: 0xf0f9ff,
+                cloudColor: 0xe0e7ff,
+                cloudShadowColor: 0xc7d2fe,
+                sunColor: 0xfbbf24,
+                sunGlareColor: 0xfef3c7,
+                sunlightColor: 0xfffbeb,
+                speed: 1.00,
+            },
+            CLOUDS2: {
+                backgroundColor: 0xfefefe,
+                color: 0xf97316,
+                speed: 0.80,
+            },
+            RINGS: {
+                color: 0xf97316,
+                backgroundColor: 0xfefefe,
+                points: 7.00,
+                maxDistance: 30.00,
+                spacing: 25.00,
+            },
+            GLOBE: {
+                color: 0xfbbf24,
+                color2: 0xf97316,
+                backgroundColor: 0xfefefe,
+                size: 1.00,
+            },
+            HALO: {
+                backgroundColor: 0xfefefe,
+                color: 0xf97316,
+                color2: 0xfbbf24,
+                size: 1.20,
+                amplitudeX: 20.00,
+                amplitudeY: 5.00,
+                xOffset: 0.10,
+                yOffset: 0.05,
+            }
+        };
+
+        function updateStatus(message, type = 'loading') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function updateButton(effectName, success) {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if (btn.textContent === effectName) {
+                    if (success) {
+                        btn.classList.add('active');
+                        btn.style.background = '#10b981';
+                    } else {
+                        btn.style.background = '#ef4444';
+                        btn.disabled = true;
+                    }
+                }
+            });
+        }
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                if (document.querySelector(`script[src="${src}"]`)) {
+                    resolve();
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        async function loadAllScripts() {
+            const scripts = [
+                '/js/vanta/three.min.js',
+                '/js/vanta/vanta.net.min.js',
+                '/js/vanta/vanta.dots.min.js',
+                '/js/vanta/vanta.waves.min.js',
+                '/js/vanta/vanta.fog.min.js',
+                '/js/vanta/vanta.clouds.min.js',
+                '/js/vanta/vanta.clouds2.min.js',
+                '/js/vanta/vanta.cells.min.js',
+                '/js/vanta/vanta.trunk.min.js',
+                '/js/vanta/vanta.topology.min.js',
+                '/js/vanta/vanta.rings.min.js',
+                '/js/vanta/vanta.globe.min.js',
+                '/js/vanta/vanta.halo.min.js',
+            ];
+
+            try {
+                updateStatus('Loading scripts...', 'loading');
+                await Promise.all(scripts.map(loadScript));
+                
+                setTimeout(() => {
+                    checkLoadedEffects();
+                }, 1000);
+                
+            } catch (error) {
+                updateStatus('Failed to load scripts', 'error');
+            }
+        }
+
+        function checkLoadedEffects() {
+            if (!window.VANTA || !window.THREE) {
+                updateStatus('VANTA or THREE.js not loaded', 'error');
+                return;
+            }
+
+            const allEffects = [...Object.keys(darkConfigs), ...Object.keys(lightConfigs)];
+            loadedEffects.clear();
+            
+            allEffects.forEach(effect => {
+                if (window.VANTA[effect]) {
+                    loadedEffects.add(effect);
+                }
+            });
+
+            updateStatus(`Loaded ${loadedEffects.size}/${allEffects.length} effects`, 
+                loadedEffects.size === allEffects.length ? 'success' : 'error');
+        }
+
+        function destroyEffect() {
+            if (vantaEffect) {
+                try {
+                    vantaEffect.destroy();
+                    vantaEffect = null;
+                    updateStatus('Effect destroyed', 'success');
+                    
+                    // Reset button states
+                    document.querySelectorAll('button').forEach(btn => {
+                        btn.classList.remove('active');
+                        if (!btn.classList.contains('theme-toggle')) {
+                            btn.style.background = '#3b82f6';
+                            btn.disabled = false;
+                        }
+                    });
+                } catch (error) {
+                    updateStatus('Error destroying effect', 'error');
+                }
+            }
+        }
+
+        function testEffect(effectName, isForDarkMode) {
+            destroyEffect();
+            
+            if (!loadedEffects.has(effectName)) {
+                updateStatus(`${effectName} not loaded`, 'error');
+                updateButton(effectName, false);
+                return;
+            }
+
+            try {
+                const configs = isForDarkMode ? darkConfigs : lightConfigs;
+                const config = {
+                    el: '#vanta-container',
+                    THREE: window.THREE,
+                    mouseControls: true,
+                    touchControls: true,
+                    gyroControls: false,
+                    minHeight: 200.0,
+                    minWidth: 200.0,
+                    scale: 1.0,
+                    scaleMobile: 0.8,
+                    ...configs[effectName]
+                };
+
+                vantaEffect = window.VANTA[effectName](config);
+                updateStatus(`${effectName} effect active`, 'success');
+                updateButton(effectName, true);
+                
+            } catch (error) {
+                updateStatus(`${effectName} failed: ${error.message}`, 'error');
+                updateButton(effectName, false);
+            }
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            const themeText = document.getElementById('theme-text');
+            themeText.textContent = isDarkMode ? 'Light' : 'Dark';
+            document.body.style.background = isDarkMode ? '#111' : '#fff';
+            document.body.style.color = isDarkMode ? '#fff' : '#000';
+        }
+
+        // Initialize
+        loadAllScripts();
+    </script>
+</body>
+</html>

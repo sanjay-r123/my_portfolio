@@ -21,10 +21,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        <script src="/js/vanta/three.min.js"></script>
-        <script src="/js/vanta/vanta.net.min.js"></script>
-        <script src="/js/vanta/vanta.dots.min.js"></script>
-        <script src="/js/vanta/vanta.waves.min.js"></script>
+        {/* Vanta scripts are now loaded dynamically in the component */}
+        {/* This ensures proper loading order and error handling */}
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}>
         <Suspense fallback={null}>{children}</Suspense>
