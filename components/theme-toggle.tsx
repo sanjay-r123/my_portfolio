@@ -1,10 +1,22 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import type React from "react"
+
+import { useEffect, useState, createContext, useContext } from "react"
 import { Button } from "@/components/ui/button"
 import { Moon, Sun } from "lucide-react"
 
-export function ThemeToggle() {
+const ThemeContext = createContext<{
+  isDark: boolean
+  toggleTheme: () => void
+}>({
+  isDark: false,
+  toggleTheme: () => {},
+})
+
+export const useTheme = () => useContext(ThemeContext)
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -37,8 +49,14 @@ export function ThemeToggle() {
   }
 
   if (!mounted) {
-    return null
+    return <div>{children}</div>
   }
+
+  return <ThemeContext.Provider value={{ isDark, toggleTheme }}>{children}</ThemeContext.Provider>
+}
+
+export function ThemeToggle() {
+  const { isDark, toggleTheme } = useTheme()
 
   return (
     <Button

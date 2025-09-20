@@ -44,8 +44,22 @@ Best regards,
   }
 
   return (
-    <section id="contact" className="py-20 px-6">
-      <div className="max-w-6xl mx-auto">
+    <section id="contact" className="py-20 px-6 relative overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        {/* Dark mode background */}
+        <div className="absolute inset-0 dark:opacity-100 opacity-0 transition-opacity duration-500">
+          <div className="absolute top-1/3 left-1/5 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+          <div className="absolute bottom-1/3 right-1/5 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl animate-pulse delay-1500"></div>
+        </div>
+
+        {/* Light mode background */}
+        <div className="absolute inset-0 dark:opacity-0 opacity-100 transition-opacity duration-500">
+          <div className="absolute top-1/3 left-1/5 w-72 h-72 bg-blue-200/20 rounded-full blur-3xl animate-pulse delay-500"></div>
+          <div className="absolute bottom-1/3 right-1/5 w-64 h-64 bg-green-200/20 rounded-full blur-3xl animate-pulse delay-1500"></div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto relative z-10">
         <div className={`space-y-12 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
           <div className="text-center space-y-4">
             <h2 className="text-3xl lg:text-4xl font-bold text-foreground">Get In Touch</h2>
@@ -116,7 +130,7 @@ Best regards,
                       className="h-16 flex-col gap-2 bg-transparent hover:bg-primary/5 transition-all duration-300"
                       asChild
                     >
-                      <a href="https://github.com/Sanjay1905" target="_blank" rel="noopener noreferrer">
+                      <a href="https://github.com/sanjay-r123" target="_blank" rel="noopener noreferrer">
                         <Github className="h-5 w-5" />
                         <span className="text-sm">GitHub</span>
                       </a>
@@ -127,7 +141,11 @@ Best regards,
                       className="h-16 flex-col gap-2 bg-transparent hover:bg-primary/5 transition-all duration-300"
                       asChild
                     >
-                      <a href="https://linkedin.com/in/sanjay-r" target="_blank" rel="noopener noreferrer">
+                      <a
+                        href="https://www.linkedin.com/in/sanjay-r-2a0b13186"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <Linkedin className="h-5 w-5" />
                         <span className="text-sm">LinkedIn</span>
                       </a>
